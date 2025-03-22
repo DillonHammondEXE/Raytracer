@@ -41,15 +41,15 @@ public:
 	 * @param rec Record to store information about the hit
 	 * @return True if any object was hit, false otherwise
 	 */
-	bool hit(const ray& r, double ray_tmin, double ray_tmax, hit_record& rec) const override {
+	bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
 		hit_record temp_rec;
 		bool hit_anything = false;
-		auto closest_so_far = ray_tmax;
+		auto closest_so_far = ray_t.max;
 
 		// Iterate through all objects in the scene
 		for (const auto& object : objects) {
 			// Check if the ray hits this object between valid bounds
-			if (object->hit(r, ray_tmin, closest_so_far, temp_rec)) {
+			if (object->hit(r, interval(ray_t.min, closest_so_far), temp_rec)) {
 				hit_anything = true;
 				// Update the closest hit distance to ensure we only record the closest hit
 				closest_so_far = temp_rec.t;
