@@ -40,6 +40,20 @@ public:
 	double length_squared() const {
 		return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
 	}
+
+	bool near_zero() const {
+		// Return true if the vector is close to zero in all dimensions.
+		auto s = 1e-8;
+		return(std::fabs(e[0]) < s) && (std::fabs(e[1]) < s) && (std::fabs(e[2]) < s);
+	}
+
+	static vec3 random() {
+		return vec3(random_double(), random_double(), random_double());
+	}
+
+	static vec3 random(double min, double max) {
+		return vec3(random_double(min, max), random_double(min, max), random_double(min, max));
+	}
 };
 
 // point3 is just an alias for vec3, but useful for geometric clarity in the code.
@@ -90,4 +104,48 @@ inline vec3 cross(const vec3& u, const vec3& v) {
 
 inline vec3 unit_vector(const vec3& v) {
 	return v / v.length();
+}
+
+inline vec3 random_unit_vector() {
+	while (true) {
+		auto p = vec3::random(-1, 1);
+		auto lensq = p.length_squared();
+		if (1e-160 < lensq && lensq <= 1)
+			return p / sqrt(lensq);
+	}
+}
+
+inline vec3 random_on_hemisphere(const vec3& normal) {
+	vec3 on_unit_sphere = random_unit_vector();
+	if (dot(on_unit_sphere, normal) > 0.0) {// In the same hemisphere as the normal
+		return on_unit_sphere;
+	} else {
+		return -on_unit_sphere;
+	}
+}
+
+/**
+ * @brief Reflects a vector about a normal vector
+ *
+ * This function implements vector reflection according to the law of reflection.
+ * Given an incident vector v pointing toward the surface and a unit normal vector n,
+ * it calculates the reflected vector.
+ *
+ * The formula v - 2*dot(v,n)*n works as follows:
+ * 1. dot(v,n) gives the length of v projected onto n (negative since v points inward)
+ * 2. Multiplying by n converts this scalar to a vector along n (pointing inward)
+ * 3. Multiplying by 2 gives us twice the projection vector
+ * 4. Subtracting from v gives us the reflection (v + 2*outward_projection)
+ *
+ * This is equivalent to v + 2b where b is the outward projection vector from the
+ * intersection point to complete the reflection.
+ *
+ * Note: This assumes n is a unit vector (normalized).
+ *
+ * @param v The incident vector (pointing toward the surface)
+ * @param n The surface normal (unit vector pointing outward)
+ * @return The reflected vector (pointing away from the surface)
+ */
+inline vec3 reflect(const vec3& v, const vec3& n) {
+	return v - 2 * dot(v, n) * n;
 }
